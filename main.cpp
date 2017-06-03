@@ -1,10 +1,12 @@
 #include "stdinc.h"
 #include "SceneManager.h"
 #include "Graphics.h"
+#include "Fiber.h"
+#include "Input.h"
 
 using namespace HfCloud;
-const int WINDOW_WIDTH = 544; /**<The width of the game window*/
-const int WINDOW_HEIGHT = 416; /**<The height of the game window*/
+const int WINDOW_WIDTH = 640; /**<The width of the game window*/
+const int WINDOW_HEIGHT = 480; /**<The height of the game window*/
 
 struct Info{
     char title[256];
@@ -29,6 +31,7 @@ void ApplyConfig(Info &info){
         }
     }
 }
+extern Fiber fiber;
 int main(int argc, char *argv[]){
     Info info;
     ApplyConfig(info);
@@ -37,14 +40,20 @@ int main(int argc, char *argv[]){
     info.window = SDL_CreateWindow(info.title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                     WINDOW_WIDTH, WINDOW_HEIGHT,
                                     SDL_WINDOW_SHOWN);
+    HFASSERT_WITH_SDLERROR(info.window != nullptr)
+
     info.render = SDL_CreateRenderer(info.window , -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE);
                                                 // open GPU accelerating, open vertical sync
+    HFASSERT_WITH_SDLERROR(info.render != nullptr)
+
     Graphics::window = info.window;
     Graphics::render = info.render;
     Graphics::width = WINDOW_WIDTH;
     Graphics::height = WINDOW_HEIGHT;
+    Graphics::check_vsync();
 
-    SceneManager::run(new SceneStart);
+    fiber[0] = [](){SceneManager::run(new SceneStart);};
+    fiber.run(0);
 
     if(Graphics::render)
         SDL_DestroyRenderer(Graphics::render);
@@ -53,5 +62,6 @@ int main(int argc, char *argv[]){
 
     IMG_Quit();
     SDL_Quit();
+    Input::Input_Quit();
     return 0;
 }

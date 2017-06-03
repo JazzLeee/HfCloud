@@ -1,4 +1,13 @@
 *.swp
 HfCloud.depend
 HfCloud.layout
+/SDL2
+/.vs
+/Debug
+/Release
+/obj
+/bin
+/sources
+/x64
+/HfDebug_log.txt
 
